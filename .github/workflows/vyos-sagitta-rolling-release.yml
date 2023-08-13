@@ -3,7 +3,7 @@ name: VyOS Sagitta Rolling Release
 on:
   push:
     tags:
-      - "v1.4.*"
+      - "v1.4-rolling-*"
 
 env:
   GIT_CLONE_URL: https://github.com/vyos/vyos-build
