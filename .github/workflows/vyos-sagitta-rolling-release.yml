@@ -11,7 +11,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build@tmit.it
   BUILD_TYPE: release
-  VERSION: rolling-release
+  VERSION: 1.4-rolling-release
   DEBIAN_MIRROR: http://mirrors.edge.kernel.org/debian/
 
 jobs:
@@ -28,8 +28,8 @@ jobs:
       - name: Build ISO
         working-directory: ./vyos-build
         run: |
-          ./configure --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION
-          sudo make iso
+          sudo make clean
+          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -42,10 +42,14 @@ jobs:
     needs: build
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Download artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
       - name: Create release
         id: create_release
@@ -57,7 +61,7 @@ jobs:
           release_name: VyOS Sagitta ${{ github.ref }}
           body: VyOS Sagitta v${{ env.VERSION }}
           draft: false
-          prerelease: false
+          prerelease: true
 
       - name: Upload release asset
         id: upload-release-asset
