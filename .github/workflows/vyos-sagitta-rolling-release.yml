@@ -34,7 +34,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
           path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
 
   release:
@@ -48,8 +48,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
 
       - name: Create release
         id: create_release
