@@ -1,9 +1,8 @@
 name: VyOS Sagitta Rolling Release
 
 on:
-  push:
-    tags:
-      - "v1.4-rolling-*"
+  schedule:
+    - cron: 0 3 * * *
 
 env:
   GIT_CLONE_URL: https://github.com/vyos/vyos-build
@@ -32,14 +31,14 @@ jobs:
           sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M)
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
           path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
 
   release:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -48,28 +47,23 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: VyOS Sagitta ${{ github.ref }}
-          body: VyOS Sagitta v${{ env.VERSION }}
-          draft: false
-          prerelease: true
+          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
+          path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
 
       - name: Upload release asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset=$(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ -name "vyos-${{ env.VERSION }}-*.iso" | xargs)
+          tag_name="v${{ env.VERSION }}"
+          hub release edit -a "$asset" -m "" "$tag_name"
+
+  delete_old_workflow_runs:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete old workflow runs
+        uses: GitRML/delete-workflow-runs@main
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-          asset_name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}.iso
-          asset_content_type: application/octet-stream
+          retain_days: 31
