@@ -10,7 +10,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build@tmit.it
   BUILD_TYPE: release
-  VERSION: 1.4-rolling-release
+  VERSION: 1.4-rolling
   DEBIAN_MIRROR: http://mirrors.edge.kernel.org/debian/
 
 jobs:
